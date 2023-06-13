@@ -11,7 +11,7 @@ const p = path.join(
   );
 
 
-module.exports=class cart
+module.exports=class Cart
 {
     static addProduct(id,productPrice)
     {
@@ -49,9 +49,23 @@ module.exports=class cart
             console.log(err);
         })
         })
-
-
-    }   
+    }  
+    
+    
+    static getCart(cb)
+    {
+        fs.readFile(p,(err,fileContent)=>
+            {
+                const cart=JSON.parse(fileContent);
+                if(err)
+                {
+                    cb(null);
+                }
+                else{
+                    cb(cart);
+                } 
+            })
+    }
 
     //delete cart items
 
@@ -79,4 +93,5 @@ module.exports=class cart
         })
        })
     }
+
 }

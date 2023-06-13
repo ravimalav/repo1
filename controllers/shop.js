@@ -1,6 +1,7 @@
 const Product = require('../models/product');
 
 const Cart=require('../models/cart');
+
 exports.getProducts = (req, res, next) => {
   Product.fetchAll(products => {
     res.render('shop/product-list', {
@@ -38,10 +39,32 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-  res.render('shop/cart', {
-    path: '/cart',
-    pageTitle: 'Your Cart'
-  });
+  
+  Cart.getCart(cart=>
+    {
+     Product.fetchAll(products=>     //find data that also present in cart as well as product
+      {
+         const cartProducts=[]; //empty array to store data that are also present into cart
+        for(product of products)
+        {
+          const cartProductData=cart.products.find(prod=> prod.id===product.id)
+        if(cartProductData)
+        {
+           cartProducts.push({productData:product,qty:cartProductData.qty})
+        }
+        }
+        res.render('shop/cart',
+        {
+          path:'cart',
+          pageTitle:'Your cart',
+          products:cartProducts
+        })
+        
+      }
+      )
+
+    })
+  
 };
 
 exports.postCart=(req,res,next)=>
