@@ -14,9 +14,12 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(id,title, imageUrl,price,description);
-  product.save();
-  res.redirect('/');
+  const product = new Product(id,title,price,imageUrl,description);
+  product.save().then(()=>
+  {
+    res.redirect('/');
+  })
+  .catch(err=>console.log(err))
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -26,19 +29,21 @@ exports.getEditProduct = (req, res, next) => {
     res.redirect('/');
   }
   const prodId=req.params.productId;   //req and params are provided by express
-  Product.findById(prodId,product=>
+  Product.findById(prodId)
+  .then(([product])=>
+  {
+    if(!product)
     {
-      if(!product)
-      {
-        return res.redirect('/');
-      }
-      res.render('admin/edit-product', {  // this is for ejs file 
-        pageTitle: 'Edit Product',
-        path: '/admin/edit-product',  //this url is for navigation  
-        product:product,              // we can use anything inplace of first product
-        editing:editMode              //extra parameter used in url  
-    });
+      return res.redirect('/');
+    }
+    res.render('admin/edit-product', {  // this is for ejs file 
+      pageTitle: 'Edit Product',
+      path: '/admin/edit-product',  //this url is for navigation  
+      product:product,              // we can use anything inplace of first product
+      editing:editMode              //extra parameter used in url  
   });
+  })
+  .catch(err=>console.log(err))
 };
 
 exports.postEditProduct=(req,res,next)=>
@@ -52,26 +57,38 @@ exports.postEditProduct=(req,res,next)=>
      const updatedPrice=req.body.price;
      const updatedDesc=req.body.description;
      
-     const updatedProduct=new Product(prodId,updatedTitle,updatedImageUrl,updatedPrice,updatedDesc);// new object of Product class
+     const updatedProduct=new Product(prodId,updatedTitle,updatedPrice,updatedImageUrl,updatedDesc);// new object of Product class
      //step 3: save the updated data into file
-     updatedProduct.save();
+     updatedProduct.save()
+     .then(()=>
+     {
+      res.redirect('/admin/products');
+     })
+     .catch(err=>console.log(err)); 
 
-     res.redirect('/admin/products');
+    
 }
 
 exports.postDeleteProduct=(req,res,next)=>
 {
   const prodId=req.body.productId;
-  Product.delete(prodId);
-  res.redirect('/admin/products');
+  Product.delete(prodId)
+  .then(()=>
+  {
+    res.redirect('/admin/products');
+  })
+  .catch(err=>console.log(err)) 
 }
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+  Product.fetchAll()
+  .then(([raws,fieldData])=>
+  {
     res.render('admin/products', {
-      prods: products,
+      prods: raws,
       pageTitle: 'Admin Products',
       path: '/admin/products'
     });
-  });
+  })
+  .catch(err=>console.log(err))
 };
