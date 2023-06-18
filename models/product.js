@@ -1,35 +1,29 @@
-const db=require('../util/database');
+const Sequelize=require('sequelize');    //used as a class or constructor function 
 
-const Cart=require('../models/cart')
+const sequelize=require('../util/database');
 
-module.exports = class Product {
-  constructor(id,title, price,imageUrl,description) {
-    this.id=id;
-    this.title = title;
-    this.price = price;
-    this.imageUrl = imageUrl;
-    this.description = description;
-  }
-
-  save() {  
-    return db.execute('INSERT INTO products (title,price,imageUrl,description) VALUES (?,?,?,?)',
-    [this.title,this.price,this.imageUrl,this.description]);
-  }
-
-  static delete(id)
+const Product =sequelize.define('product',{  
+  id:{
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull:false,
+    primaryKey:true
+  },
+  title: Sequelize.STRING,
+  price: {
+    type:Sequelize.DOUBLE,
+    allowNull:false
+  },
+  imageUrl:
   {
-    return db.execute(
-      'DELETE FROM products WHERE products.id=?',[id]
-    );
-  }
-
-  static fetchAll() { 
-   return db.execute('SELECT * FROM products')   // return all data to controller
-  }
-  
-  static findById(id)
+    type:Sequelize.STRING,
+    allowNull:false
+  },
+  description:
   {
-      return db.execute('SELECT * FROM products where products.id=?',[id]);
+    type:Sequelize.STRING,
+    allowNull:false
   }
-      
-};
+})
+
+module.exports=Product;
