@@ -9,6 +9,9 @@ const app = express();
 
 const sequelize=require('./util/database')
 
+const Product=require('./models/product')
+const User=require('./models/user')
+
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
@@ -18,14 +21,45 @@ const shopRoutes = require('./routes/shop');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use((req,res,next)=>    //important this middleware do not execute by npm start instead of it is call by incoming request ,npm start dont run it
+{                           // this middle ware must execute before routes(other middleware)
+    User.findByPk(1)
+    .then(user=>
+        {
+            req.user=user;          //it's not a sisple user that is  store in database ,rather than is Sequelize(all the method like destroy are assotiated with it) object
+            next();
+        })
+    .catch(err=>console.log(err))
+})
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-sequelize.sync().then(result=>
+
+
+
+//asotiation
+Product.belongsTo(User,{constraints:true, onDelete:'CASCADE'})  //user created product
+User.hasMany(Product)   //user has many product
+
+sequelize.sync()
+.then(result=>
     {
-        console.log(result);
+    return User.findByPk(1);
+    })
+.then(user=>
+    {
+        if(!user)
+        {
+            return  User.create({id:1,name:'ravi', email:'ravi@ravigmail.com'})
+        }
+        return user;
+    })
+.then(user=>
+    {
+        console.log(user);
         app.listen(3000);
     })
     .catch(err=>console.log(err))
