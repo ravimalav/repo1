@@ -11,6 +11,8 @@ const sequelize=require('./util/database')
 
 const Product=require('./models/product')
 const User=require('./models/user')
+const Cart=require('./models/cart')
+const CartItem=require('./models/cart-item')
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -38,13 +40,17 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 
 
-
-
 //asotiation
 Product.belongsTo(User,{constraints:true, onDelete:'CASCADE'})  //user created product
 User.hasMany(Product)   //user has many product
+Cart.belongsTo(User)   //one cart have only one user
+User.hasOne(Cart)   //reverse to above one we dont need it
+Product.belongsToMany(Cart,{through:CartItem})   //,{through:CartItem} telling taht where this connection is situated
+Cart.belongsToMany(Product,{through:CartItem})
 
-sequelize.sync()
+sequelize
+// .sync({force:true})
+.sync()
 .then(result=>
     {
     return User.findByPk(1);
@@ -59,9 +65,13 @@ sequelize.sync()
     })
 .then(user=>
     {
-        console.log(user);
-        app.listen(3000);
+        // console.log(user);
+       return user.createCart();    //assosiated(adding) createCart() method with user 
     })
+    .then(cart=>
+        {
+            app.listen(3000);
+        })
     .catch(err=>console.log(err))
 
 

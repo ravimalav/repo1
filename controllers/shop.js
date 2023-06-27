@@ -47,42 +47,82 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-  
-  Cart.getCart(cart=>
-    {
-     Product.fetchAll(products=>     //find data that also present in cart as well as product
-      {
-         const cartProducts=[]; //empty array to store data that are also present into cart
-        for(product of products)
-        {
-          const cartProductData=cart.products.find(prod=> prod.id===product.id)
-        if(cartProductData)
-        {
-           cartProducts.push({productData:product,qty:cartProductData.qty})
-        }
-        }
-        res.render('shop/cart',
-        {
-          path:'cart',
-          pageTitle:'Your cart',
-          products:cartProducts
-        })
-        
-      }
-      )
-
-    })
-  
+  req.user
+         .getCart()
+         .then(cart=>
+         {
+            return cart.getProducts().then(products=> 
+                res.render('shop/cart',
+                  {
+                    path:'cart',
+                    pageTitle:'Your cart',
+                    products:products
+                  })
+              ).catch(err=>console.log("something not good with cart"))
+         })
+         .catch(err=>console.log("can not access cart"))
 };
 
 exports.postCart=(req,res,next)=>
 {
   const prodId=req.body.productId;
-  Product.findById(prodId,(product)=>
-  {
-    Cart.addProduct(prodId,product.price)
-  })
-  res.redirect('/cart');
+  let fecthedCart;
+  let newQuantity=1;  
+  req.user
+  .getCart()
+  .then(cart=>
+    {
+      fecthedCart=cart;     //now cart is availabel through out the cart
+      return cart.getProducts({where:{id:prodId}})
+    })
+  .then(products=>
+    {
+      let product;
+      if(products.length>0)
+      {
+        product=products[0];
+      }
+      if(product)
+      {
+          const oldQuantity=product.cartItem.quantity;
+          newQuantity=oldQuantity+1;
+          return product;    //handle by below hen block
+      }
+      // if there is no product into cart than
+      return Product.findByPk(prodId)   //handle by below hen block
+    })
+        .then(product=>
+            {
+              return fecthedCart.addProducts(product,{
+                through:{quantity:newQuantity}
+              })
+            })
+       .then(()=>
+        {
+          res.redirect('/cart'); 
+        })
+  .catch(err=>console.log('cannot get cart data'))
+}
+
+exports.postDeleteCart=(req,res,next)=>
+{
+  const prodId=req.body.productId;
+  req.user
+  .getCart()
+  .then(cart=>
+    {
+     return cart.getProducts({where:{id:prodId}})   
+    })
+  .then(products=>
+    {
+      const product=products[0];       //gets response in the form of json where data is first element of json responce
+      return product.cartItem.destroy();
+    })
+    .then(()=>
+    {
+      res.redirect('/cart');
+    })
+  .catch(err=>console.log("can not dlete cart item right now"))
 }
 
 exports.getOrders = (req, res, next) => {
