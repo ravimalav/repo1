@@ -6,6 +6,7 @@ const errorController = require("./controllers/error");
 
 const app = express();
 const MongoConnect = require("./util/database").MongoConnect;
+const User = require("./models/user");
 // const Product = require("./models/product");
 // const User = require("./models/user");
 // const Cart = require("./models/cart");
@@ -15,7 +16,7 @@ app.set("view engine", "ejs");
 app.set("views", "views");
 
 const adminRoutes = require("./routes/admin");
-// const shopRoutes = require("./routes/shop");
+const shopRoutes = require("./routes/shop");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -27,19 +28,22 @@ app.use(
     next //important this middleware do not execute by npm start instead of it is call by incoming request ,npm start dont run it
   ) => {
     // this middle ware must execute before routes(other middleware)
-    // User.findByPk(1)
-    // .then(user=>
-    //     {
-    //         req.user=user;          //it's not a simple user that is store in database ,rather than is Sequelize(all the method like destroy are assotiated with it) object
-    //         next();
-    //     })
-    // .catch(err=>console.log(err))
-    next();
+    User.findById("6530df1aa8dbf1a5ff5351df")
+      .then((user) => {
+        if (user) {
+          req.user = user; //it's not a simple user that is store in database ,rather than is Sequelize(all the method like destroy are assotiated with it) object
+          next();
+        } else {
+          console.log("user not found");
+          next();
+        }
+      })
+      .catch((err) => console.log(err));
   }
 );
 
 app.use("/admin", adminRoutes);
-// app.use(shopRoutes);
+app.use(shopRoutes);
 
 // app.use(errorController.get404);
 
