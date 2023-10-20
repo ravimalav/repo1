@@ -31,7 +31,7 @@ app.use(
     User.findById("6530df1aa8dbf1a5ff5351df")
       .then((user) => {
         if (user) {
-          req.user = user; //it's not a simple user that is store in database ,rather than is Sequelize(all the method like destroy are assotiated with it) object
+          req.user = new User(user.name, user.email, user.cart, user._id); //it's not a simple user that is store in database ,rather than is Sequelize(all the method like destroy are assotiated with it) object
           next();
         } else {
           console.log("user not found");
