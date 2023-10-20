@@ -109,10 +109,22 @@ exports.postDeleteCart = (req, res, next) => {
     .catch((err) => console.log("can not dlete cart item right now"));
 };
 
+exports.addOrders = (req, res, next) => {
+  req.user
+    .addOrder()
+    .then((result) => {
+      res.redirect("/orders");
+    })
+    .catch((err) => console.log(err));
+};
+
 exports.getOrders = (req, res, next) => {
-  res.render("shop/orders", {
-    path: "/orders",
-    pageTitle: "Your Orders",
+  req.user.getOrders().then((orders) => {
+    res.render("shop/orders", {
+      path: "/orders",
+      pageTitle: "Your Orders",
+      orders: orders,
+    });
   });
 };
 
