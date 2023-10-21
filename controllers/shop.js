@@ -6,7 +6,7 @@ const db = require("../util/database");
 const { where } = require("sequelize");
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find() //find is inbuilt functio in mongooose
     .then((products) => {
       res.render("shop/index", {
         prods: products,
@@ -32,7 +32,7 @@ exports.getProductId = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/index", {
         prods: products,

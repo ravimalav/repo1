@@ -14,18 +14,17 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
 
-  const product = new Product(
-    title,
-    price,
-    imageUrl,
-    description,
-    null,
-    req.user._id
-  );
+  const product = new Product({
+    title: title,
+    price: price,
+    imageUrl: imageUrl,
+    description: description,
+    userId: req.user, // req.user load all property of user but mongoose only take _id os user
+  });
   product
-    .save()
+    .save() //in mongoose save method is provided by mingoose we dont need to derive it in model
     .then((result) => {
-      console.log("Created Successfully!");
+      console.log("Product added Successfully!");
       res.redirect("/admin/products");
     })
     .catch((err) => console.log(err));
@@ -68,15 +67,14 @@ exports.postEditProduct = (req, res, next) => {
   //  const updatedProduct=new Product(prodId,updatedTitle,updatedPrice,updatedImageUrl,updatedDesc);// new object of Product class
   //step 3: save the updated data into file
   // Product.findById(prodId) //finding the product that gonna update
-  const updatedProduct = new Product(
-    updatedTitle,
-    updatedPrice,
-    updatedImageUrl,
-    updatedDesc,
-    prodId
-  );
-  updatedProduct
-    .save()
+  Product.findById(prodId) //find the product that gona be updated
+    .then((product) => {
+      (product.title = updatedTitle),
+        (product.price = updatedPrice),
+        (product.imageUrl = updatedImageUrl),
+        (product.description = updatedDesc);
+      return product.save();
+    })
     .then(
       (
         result //this then is for promise that is return from above then block
@@ -90,16 +88,20 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteById(prodId)
-    .then(() => {
+  Product.findByIdAndRemove(prodId)
+    .then((product) => {
+      console.log(product);
       res.redirect("/admin/products");
     })
     .catch((err) => console.log(err));
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll() //old way to find All product
+  Product.find() //old way to find All product
+    .select("title name price") //used to show specific inforamation at front end
+    .populate("userId", "name") // used to get required column form db
     .then((products) => {
+      console.log(products);
       res.render("admin/products", {
         prods: products,
         pageTitle: "Admin Products",
