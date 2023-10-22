@@ -97,9 +97,9 @@ exports.postDeleteProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.find() //old way to find All product
+  Product.find()
     .select("title name price") //used to show specific inforamation at front end
-    .populate("userId", "name") // used to get required column form db
+    .populate("userId", "name") // used to get required column form db in console orto get specific data
     .then((products) => {
       console.log(products);
       res.render("admin/products", {
