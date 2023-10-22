@@ -47,7 +47,7 @@ exports.getCart = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .then((user) => {
-      console.log("user ==>>>", user.cart.items);
+      console.log(user.cart.items);
       const products = user.cart.items;
       res.render("shop/cart", {
         path: "cart",
@@ -105,7 +105,7 @@ exports.postDeleteCart = (req, res, next) => {
   const prodId = req.body.productId;
   req.user
     .deleteCartItemById(prodId)
-    .then(() => {
+    .then((result) => {
       res.redirect("/cart");
     })
     .catch((err) => console.log("can not dlete cart item right now"));
